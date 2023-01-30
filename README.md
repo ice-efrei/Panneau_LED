@@ -1,9 +1,5 @@
 # Panneau Led Readme
 
-Créée par: Zhou-efr
-Date de création: 24 janvier 2023
-Étiquette: ICE-EFREI
-
 Repository pour le projet panneau LED de ICE EFREI. Ce projet permet de controller le panneau led de trois manières différentes : avec un arduino, une raspberry ou une STM32.
 
 # Installation
