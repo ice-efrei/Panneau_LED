@@ -16,9 +16,30 @@ Pour compiler le code python sur votre raspberry vous devez d’abords installer
 pip install -r requirements.txt
 ```
 
+Je recommande d’utiliser un environnement virtuel pour éviter les conflits de dépendances.
+```bash
+python3 -m venv ./venv/
+source ./venv/bin/activate
+```
+
+En faisant attention à ce que la mention `(venv)` apparaisse dans votre terminal vous pouvez maintenant installer les dépendances avec la commande précédente.
+
 ## Arduino
 
 Pour compiler le projet sur Arduino il faut télécharger les librairies suivantes depuis Arduino IDE ou directement sur github :
 
+| Librairie | Lien |
+| ------- | ------------------ |
 | FastLED | https://fastled.io/ |
 | arduinoFFT | https://github.com/kosme/arduinoFFT |
+
+# Crédits
+
+| Librairie | Lien |
+| ------- | ------------------ |
+| FastLED | https://fastled.io/ |
+| arduinoFFT | https://github.com/kosme/arduinoFFT |
+| Adafruit GFX Library | https://learn.adafruit.com/neopixels-on-raspberry-pi/python-usage |
+| NeoMatrix |
+| Adafruit NeoPixel |
+| Tsun0 code | https://github.com/tsuno0/LEDdisplay |
