@@ -1,90 +1,30 @@
 # cadeaau kiki :D 
 import random
-import time
 import os
+from typing import List, Tuple
 import keyboard
 
-# ?_______________________________________________________________
-from colorama import init, Fore, Back, Style
+from random import randint, choice
+from keyboard import is_pressed
+from time import sleep
 
-init()
-FORES = [Fore.BLACK, Fore.RED, Fore.GREEN, Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN, Fore.WHITE]
-BACKS = [Back.BLACK, Back.RED, Back.GREEN, Back.YELLOW, Back.BLUE, Back.MAGENTA, Back.CYAN, Back.WHITE]
-BRIGHTNESS = [Style.DIM, Style.NORMAL, Style.BRIGHT]
-
-
-def print_with_white(s, color=Fore.WHITE, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_red(s, color=Fore.RED, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_green(s, color=Fore.GREEN, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_yellow(s, color=Fore.YELLOW, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_blue(s, color=Fore.BLUE, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_magenta(s, color=Fore.MAGENTA, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_cyan(s, color=Fore.CYAN, brightness=Style.NORMAL, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-def print_with_grey(s, color=Fore.WHITE, brightness=Style.DIM, **kwargs):
-    print(f"{brightness}{color}{s}{Style.RESET_ALL}", **kwargs)
-
-
-# create a function who print the matrix in the console
-def print_matrix(matrix):
-    for i in range(len(matrix)):
-        for j in range(len(matrix[i])):
-            if matrix[i][j] == 0:
-                print('□', end=' ')
-            elif matrix[i][j] == 1:
-                print_with_cyan('■', end=' ')
-            elif matrix[i][j] == 2:
-                print_with_yellow('■', end=' ')
-            elif matrix[i][j] == 3:
-                print_with_magenta('■', end=' ')
-            elif matrix[i][j] == 4:
-                print_with_grey('■', end=' ')
-            elif matrix[i][j] == 5:
-                print_with_blue('■', end=' ')
-            elif matrix[i][j] == 6:
-                print_with_red('■', end=' ')
-            elif matrix[i][j] == 7:
-                print_with_green('■', end=' ')
-            elif matrix[i][j] == 8:
-                print_with_white('■', end=' ')
-            else:
-                print(' ', end='')
-        print()
-
-# ?_______________________________________________________________
+clear = lambda: os.system('cls' if os.name == 'nt' else 'clear')
+random_piece = lambda: choice([I, O, T, L, J, S, Z])
+is_line_full = lambda matrix, y: all(matrix[y])
+is_first_line_empty = lambda matrix: all([x == 0 for x in matrix[0]])
 
 # give a size to the matrix who represent the game
-n = 20 # number of lines # * le vrai tableau fait 40 lignes
-p = 10 # number of columns# * le vrai tableau fait 30 colonnes
+n = 20  # number of lines # * le vrai tableau fait 40 lignes
+p = 10  # number of columns# * le vrai tableau fait 30 colonnes
 
 # give the touch who can use in game
-left = 'q'
-right = 'd'
-down = 's'
-rotate = 'z'
+left = 'left'
+right = 'right'
+down = 'down'
+rotate = 'up'
 
 # give a time between each turn
-time_between_turn = 0.5
+frame_per_seconds = 10
 
 # list of matrix who represent tetris pieces who can use in game (T, L, J, S, Z, I, O)
 I = [[1, 1, 1, 1]]
@@ -95,115 +35,57 @@ J = [[5, 5, 5], [0, 0, 5]]
 Z = [[6, 6, 0], [0, 6, 6]]
 S = [[0, 7, 7], [7, 7, 0]]
 
-# list of colors who can use in game
-invisible = (0, 0, 0)
-cyan = (0, 255, 255)
-yellow = (255, 255, 0)
-purple = (128, 0, 128)
-orange = (255, 165, 0)
-blue = (0, 0, 255)
-red = (255, 0, 0)
-green = (0, 255, 0)
+# black - cyan - yellow - purple - grey - blue - red - green - white
+colors = [(0, 0, 0), (0, 255, 255), (255, 255, 0), (128, 0, 128), (128, 128, 128), (0, 0, 255), (255, 0, 0),
+          (0, 255, 0), (255, 255, 255)]
 
 
-# create a function that makes a matrix of zeros of size (n, p)
-def make_matrix(n, p):
-    return [[0 for x in range(p)] for y in range(n)]
+def display_on_console(array: List[List[int]]) -> None:
+    """
+    Display the array on the bash terminal with colors and █ characters
+    :param array: array to display
+    :return: None
+    """
+    for y in range(len(array)):
+        for x in range(len(array[y])):
+            color = colors[array[y][x]]
+            print(f"\033[48;2;{color[0]};{color[1]};{color[2]}m  ", end="")
+        print("\033[0m")
 
 
-# create a function who return a random piece
-def random_piece():
-    return random.choice([I, O, T, L, J, S, Z])
-
-
-# create a function who return a new matrix with the piece in the coordinates (x, y)
-def add_piece(matrix, piece, x, y):
-    for i in range(len(piece)):
-        for j in range(len(piece[i])):
-            matrix[i + y][j + x] = piece[i][j]
-    return matrix
-
-
-# create a function who verified if a line is full
-def is_full_line(matrix, y):
-    for i in range(len(matrix[y])):
-        if matrix[y][i] == 0:
-            return False
-    return True
-
-
-# create a function who delete a line
-def delete_line(matrix, y):
-    for i in range(y, 0, -1):
-        for j in range(len(matrix[i])):
-            matrix[i][j] = matrix[i - 1][j]
-    return matrix
-
-
-# create a function who delete all full lines
-def delete_full_lines(matrix):
-    y = 0
-    while y < len(matrix):
-        if is_full_line(matrix, y):
-            matrix = delete_line(matrix, y)
-            matrix = descend_pieces(matrix)
-        else:
-            y += 1
-    return matrix
-
-
-# create a function who verified the first line contain only zeros
-def is_empty_line(matrix):
-    for i in range(len(matrix[0])):
-        if matrix[0][i] != 0:
-            return False
-    return True
-
-# create a function who descend a piece in the matrix
-def descend_piece(matrix, piece, x, y):
-    if can_descend(matrix, piece, x, y):
-        for i in range(len(piece)):
-            for j in range(len(piece[i])):
-                if piece[i][j] != 0:
-                    place_piece(matrix, piece, x, y+1)
-    return matrix
-
-# create a function who place a piece in the matrix
 def place_piece(matrix, piece, x, y):
+    """
+    Place a piece in the matrix at the coordinates (x, y)
+    :param matrix: matrix to place the piece
+    :param piece: piece to place
+    :param x: x coordinate
+    :param y: y coordinate
+    :return: matrix with the piece placed
+    """
     for i in range(len(piece)):
         for j in range(len(piece[i])):
             if piece[i][j] != 0:
                 matrix[y + i][x + j] = piece[i][j]
     return matrix
 
-# create a function who descend all pieces in the matrix while it is possible
-def descend_pieces(matrix):
-    for i in range(len(matrix)):
-        for j in range(len(matrix[i])):
-            if matrix[i][j] != 0:
-                while i < len(matrix) - 1 and matrix[i + 1][j] == 0:
-                    matrix[i + 1][j] = matrix[i][j]
-                    matrix[i][j] = 0
-                    i += 1
-    return matrix
 
-
-
-
-
-# create a function who delete a piece (with delete_piece) in the matrix and verified if the piece can descend
-def can_descend(matrix, piece, x, y):
-    delete_piece(matrix, piece, x, y)
+def delete_piece(matrix, piece, x, y):
+    """
+    Delete a piece in the matrix at the coordinates (x, y)
+    :param matrix: matrix to delete the piece
+    :param piece: piece to delete
+    :param x: x coordinate
+    :param y: y coordinate
+    :return: matrix with the piece deleted
+    """
     for i in range(len(piece)):
         for j in range(len(piece[i])):
             if piece[i][j] != 0:
-                if y + i + 1 == len(matrix) or matrix[y + i + 1][x + j] != 0:
-                    return False
-    return True
+                matrix[y + i][x + j] = 0
+    return matrix
 
-# create a function who delete a piece (with delete_piece) in the matrix and verified if the piece can move to the left
+
 def can_move_left(matrix, piece, x, y):
-    delete_piece(matrix, piece, x, y)
     for i in range(len(piece)):
         for j in range(len(piece[i])):
             if piece[i][j] != 0:
@@ -212,8 +94,84 @@ def can_move_left(matrix, piece, x, y):
     return True
 
 
-# create a function who turn the piece in the matrix in the right direction
+def can_move_right(matrix, piece, x, y):
+    """
+    Check if the piece can move to the right
+    :param matrix: matrix to check
+    :param piece: piece to check
+    :param x: x coordinate of the piece
+    :param y: y coordinate of the piece
+    :return: True if the piece can move to the right, False otherwise
+    """
+
+    for i in range(len(piece)):
+        for j in range(len(piece[i])):
+            if piece[i][j] != 0:
+                if x + j + 1 >= len(matrix[y]) or matrix[y + i][x + j + 1] != 0:
+                    return False
+    return True
+
+
+def delete_full_lines(matrix):
+    """
+    Delete all full lines in the matrix
+    :param matrix: matrix to delete the lines
+    :return: matrix with the lines deleted
+    """
+    y = 0
+
+    def delete_line(matrix, y):
+        """
+        Delete a line in the matrix
+        :param matrix: matrix to delete the line
+        :param y: y coordinate of the line to delete
+        :return: matrix with the line deleted
+        """
+        for i in range(y, 0, -1):
+            for j in range(len(matrix[i])):
+                matrix[i][j] = matrix[i - 1][j]
+        return matrix
+
+    def descend_pieces(matrix):
+        """
+        Descend all pieces in the matrix while it is possible
+        :param matrix: matrix to descend the pieces
+        :return: matrix with the pieces descended
+        """
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i])):
+                if matrix[i][j] != 0:
+                    while i < len(matrix) - 1 and matrix[i + 1][j] == 0:
+                        matrix[i + 1][j] = matrix[i][j]
+                        matrix[i][j] = 0
+                        i += 1
+        return matrix
+
+    while y < len(matrix):
+        if is_line_full(matrix, y):
+            matrix = delete_line(matrix, y)
+            matrix = descend_pieces(matrix)
+        else:
+            y += 1
+
+    return matrix
+
+
+def can_descend(matrix, piece, x, y):
+    for i in range(len(piece)):
+        for j in range(len(piece[i])):
+            if piece[i][j] != 0 and not (i + 1 < len(piece) and piece[i + 1][j] != 0):
+                if y + i + 1 == len(matrix) or matrix[y + i + 1][x + j] != 0:
+                    return False
+    return True
+
+
 def turn_piece(piece):
+    """
+    Turn a piece
+    :param piece: piece to turn
+    :return: turned piece
+    """
     new_piece = []
     for i in range(len(piece[0])):
         new_piece.append([])
@@ -223,81 +181,47 @@ def turn_piece(piece):
     return new_piece
 
 
-# create a function who delete a piece (with delete_piece) in the matrix and verified if the piece can move to the right. if the piece don't out of the matrix and if the piece don't touch another piece
-def can_move_right(matrix, piece, x, y):
-    delete_piece(matrix, piece, x, y)
-    for i in range(len(piece)):
-        for j in range(len(piece[i])):
-            if piece[i][j] != 0:
-                if x + j + 1 == len(matrix[0]) or matrix[y + i][x + j + 1] != 0:
-                    return False
-    return True
-
-
-# create a function who delete a piece in the matrix
-def delete_piece(matrix, piece, x, y):
-    for i in range(len(piece)):
-        for j in range(len(piece[i])):
-            if piece[i][j] != 0:
-                matrix[y + i][x + j] = 0
-    return matrix
-
-
-# create a function who move a piece to the left
-def move_left(matrix, piece, x, y):
-    if can_move_left(matrix, piece, x, y):
-        print("can move left")
-    return matrix
-
-# create a function who move a piece to the right. the function delete the piece in the matrix, move the piece to the right and place the piece in the matrix
-def move_right(matrix, piece, x, y):
-    if can_move_right(matrix, piece, x, y):
-        print("can move right")
-    return matrix
-
-
-
-# !_____________________________________________________
-#create a function for the movement of the piece
-def move_piece(matrix, piece, x, y):
-    if keyboard.is_pressed('q'):
-        matrix = delete_piece(matrix, piece, x, y)
-        x -= 1
-    elif keyboard.is_pressed('d'):
-        matrix = delete_piece(matrix, piece, x, y)
-        x += 1
-    elif keyboard.is_pressed('z'):
-        piece = turn_piece(piece)
-    elif keyboard.is_pressed('s'):
-        matrix = delete_piece(matrix, piece, x, y)
-        y -= 1
-    return matrix, piece, x, y
-
-# !_____________________________________________________
-
-# create game loop
 def main():
-    matrix = make_matrix(n, p)
-    while is_empty_line(matrix):
-        matrix = delete_full_lines(matrix)
-        piece_usefull = random_piece()
-        x = random.randint(0, p - 4)
-        y = 0
-        add_piece(matrix, piece_usefull, x, y)
-        while can_descend(matrix, piece_usefull, x, y):
-            matrix = descend_piece(matrix, piece_usefull, x, y)
-            matrix, piece_usefull, x, y = move_piece(matrix, piece_usefull, x, y)
-            print_matrix(matrix)
-            time.sleep(time_between_turn)
-            matrix, piece_usefull, x, y = move_piece(matrix, piece_usefull, x, y)
-            os.system('cls')
-            y+=1
-        matrix = descend_piece(matrix, piece_usefull, x, y-1)
-        print_matrix(matrix)
-        time.sleep(time_between_turn)
-        os.system('cls')
-    print_matrix(matrix)
+    matrix = [[0 for _ in range(p)] for _ in range(n)]
+
+    current_tetrominos = random_piece()
+    x = randint(0, p - 4)
+    y = 1
+
+    print("*--------------*")
+    print("| Tretris Game |")
+    print("*--------------*")
+
+    while is_first_line_empty(matrix):
+        if can_descend(matrix, current_tetrominos, x, y):
+            matrix = delete_piece(matrix, current_tetrominos, x, y)
+            if is_pressed(left) and can_move_left(matrix, current_tetrominos, x, y):
+                print("left")
+                x -= 1
+            elif is_pressed(right) and can_move_right(matrix, current_tetrominos, x, y):
+                print("right")
+                x += 1
+            elif is_pressed(down):
+                y -= 1
+            elif is_pressed(rotate):
+                current_tetrominos = turn_piece(current_tetrominos)
+            print("right : ", can_move_right(matrix, current_tetrominos, x, y))
+            print("left : ", can_move_left(matrix, current_tetrominos, x, y))
+        else:
+            # if the tetrominos cannot go down then we check for any full line to score then we create a new tetrominos
+            matrix = delete_full_lines(matrix)
+            current_tetrominos = random_piece()
+            x = randint(0, p - 4)
+            y = 1
+
+        y += 1
+        matrix = place_piece(matrix, current_tetrominos, x, y)
+        display_on_console(matrix)
+        sleep(1 / frame_per_seconds)
+        clear()
+    display_on_console(matrix)
     print("Game Over")
+
 
 if __name__ == '__main__':
     main()
