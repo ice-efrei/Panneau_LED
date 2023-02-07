@@ -1,3 +1,4 @@
+# cadeaau kiki :D 
 import random
 import time
 import os
