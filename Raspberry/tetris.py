@@ -231,6 +231,49 @@ def turn_piece(piece):
     return new_piece
 
 
+# ------------------------------
+# Only on raspberry pi
+# ------------------------------
+
+# from board import D18
+# from neopixel import NeoPixel, ORDER
+#
+#
+# pixel_pin = D18
+# num_pixels = 1200
+# led_strip = NeoPixel(pixel_pin, num_pixels, brightness=0.5, auto_write=False, pixel_order=ORDER)
+#
+#
+# def display_on_leds (array: List[List[int]], leds: NeoPixel) -> None:
+#     """
+#     Display the array on the LED strip
+#     :param array: array to display
+#     :return: None
+#     """
+#     for y in range(len(array)):
+#         for x in range(len(array[y])):
+#             leds[XY(x, y, len(array[y]), len(array))] = colors[array[y][x]]
+#     leds.show()
+
+
+# ------------------------------
+# End of raspberry pi only code
+# ------------------------------
+
+def XY (x: int, y: int, w: int, h: int ) -> int:
+    """
+    Convert x,y coordinates to a single integer
+    :param x: x coordinate
+    :param y: y coordinate
+    :param w: width of the array
+    :param h: height of the array
+    :return: single integer
+    """
+    if y % 2 == 0:
+        return y * w + x
+    else:
+        return (y + 1) * w - x - 1
+
 def main():
     matrix = [[0 for _ in range(p)] for _ in range(n)]
 
@@ -270,6 +313,7 @@ def main():
         y += 1
         matrix = place_piece(matrix, current_tetrominos, x, y)
         display_on_console(matrix)
+        # display_on_leds(matrix, led_strip)
         sleep(1 / frame_per_seconds)
         clear()
     display_on_console(matrix)
