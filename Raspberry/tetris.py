@@ -1,8 +1,10 @@
 import os
+from threading import Thread
 from typing import List, Tuple
 
 from random import randint, choice
 
+from inputs import get_gamepad, devices
 from pynput import keyboard
 from time import sleep
 
@@ -30,7 +32,6 @@ S = [[0, 7, 7], [7, 7, 0]]
 # black - cyan - yellow - purple - grey - blue - red - green - white
 colors = [(0, 0, 0), (0, 255, 255), (255, 255, 0), (128, 0, 128), (128, 128, 128), (0, 0, 255), (255, 0, 0),
           (0, 255, 0), (255, 255, 255)]
-
 
 # give the touch who can use in game
 left = 'KEY_LEFT'
@@ -85,8 +86,8 @@ def on_release(key):
 
 # Collect events until released
 listener = keyboard.Listener(
-        on_press=on_press,
-        on_release=on_release)
+    on_press=on_press,
+    on_release=on_release)
 listener.start()
 
 
@@ -262,7 +263,7 @@ def turn_piece(piece):
 # End of raspberry pi only code
 # ------------------------------
 
-def XY (x: int, y: int, w: int, h: int ) -> int:
+def XY(x: int, y: int, w: int, h: int) -> int:
     """
     Convert x,y coordinates to a single integer
     :param x: x coordinate
@@ -276,11 +277,126 @@ def XY (x: int, y: int, w: int, h: int ) -> int:
     else:
         return (y + 1) * w - x - 1
 
+
+class XboxController(object):
+    MAX_TRIG_VAL = pow(2, 8)
+    MAX_JOY_VAL = pow(2, 15)
+
+    def __init__(self):
+        self.LeftJoystickY = 0
+        self.LeftJoystickX = 0
+        self.RightJoystickY = 0
+        self.RightJoystickX = 0
+        self.LeftTrigger = 0
+        self.RightTrigger = 0
+        self.LeftBumper = 0
+        self.RightBumper = 0
+        self.A = 0
+        self.X = 0
+        self.Y = 0
+        self.B = 0
+        self.LeftThumb = 0
+        self.RightThumb = 0
+        self.Back = 0
+        self.Start = 0
+        self.LeftDPad = 0
+        self.RightDPad = 0
+        self.UpDPad = 0
+        self.DownDPad = 0
+
+        self._monitor_thread = Thread(target=self._monitor_controller, args=())
+        self._monitor_thread.daemon = True
+        self._monitor_thread.start()
+
+    def read(self):
+        x = self.LeftJoystickX
+        y = self.LeftJoystickY
+        a = self.A
+        b = self.X  # b=1, x=2
+        rb = self.RightBumper
+        return [x, y, a, b, rb]
+
+    def _monitor_controller(self):
+        while True:
+            events = get_gamepad()
+            for event in events:
+                if event.code == 'ABS_Y':
+                    self.LeftJoystickY = event.state / XboxController.MAX_JOY_VAL  # normalize between -1 and 1
+                elif event.code == 'ABS_X':
+                    self.LeftJoystickX = event.state / XboxController.MAX_JOY_VAL  # normalize between -1 and 1
+                elif event.code == 'ABS_RY':
+                    self.RightJoystickY = event.state / XboxController.MAX_JOY_VAL  # normalize between -1 and 1
+                elif event.code == 'ABS_RX':
+                    self.RightJoystickX = event.state / XboxController.MAX_JOY_VAL  # normalize between -1 and 1
+                elif event.code == 'ABS_Z':
+                    self.LeftTrigger = event.state / XboxController.MAX_TRIG_VAL  # normalize between 0 and 1
+                elif event.code == 'ABS_RZ':
+                    self.RightTrigger = event.state / XboxController.MAX_TRIG_VAL  # normalize between 0 and 1
+                elif event.code == 'BTN_TL':
+                    self.LeftBumper = event.state
+                elif event.code == 'BTN_TR':
+                    self.RightBumper = event.state
+                elif event.code == 'BTN_SOUTH':
+                    self.A = event.state
+                elif event.code == 'BTN_NORTH':
+                    self.Y = event.state  # previously switched with X
+                elif event.code == 'BTN_WEST':
+                    self.X = event.state  # previously switched with Y
+                elif event.code == 'BTN_EAST':
+                    self.B = event.state
+                elif event.code == 'BTN_THUMBL':
+                    self.LeftThumb = event.state
+                elif event.code == 'BTN_THUMBR':
+                    self.RightThumb = event.state
+                elif event.code == 'BTN_SELECT':
+                    self.Back = event.state
+                elif event.code == 'BTN_START':
+                    self.Start = event.state
+                elif event.code == 'BTN_TRIGGER_HAPPY1':
+                    self.LeftDPad = event.state
+                elif event.code == 'BTN_TRIGGER_HAPPY2':
+                    self.RightDPad = event.state
+                elif event.code == 'BTN_TRIGGER_HAPPY3':
+                    self.UpDPad = event.state
+                elif event.code == 'BTN_TRIGGER_HAPPY4':
+                    self.DownDPad = event.state
+
+            if self.A == 1:
+                arrow_keys["KEY_UP"]["state"] = True
+            else:
+                arrow_keys["KEY_UP"]["state"] = False
+
+            if self.LeftJoystickX < -0.5:
+                arrow_keys["KEY_RIGHT"]["state"] = True
+            else:
+                arrow_keys["KEY_RIGHT"]["state"] = False
+
+            if self.LeftJoystickX > 0.5:
+                arrow_keys["KEY_LEFT"]["state"] = True
+            else:
+                arrow_keys["KEY_LEFT"]["state"] = False
+
+            if self.LeftJoystickY < -0.5:
+                arrow_keys["KEY_DOWN"]["state"] = True
+            else:
+                arrow_keys["KEY_DOWN"]["state"] = False
+
+            if self.LeftDPad == 1:
+                arrow_keys["KEY_LEFT"]["state"] = True
+            else:
+                arrow_keys["KEY_LEFT"]["state"] = False
+
+            if self.RightDPad == 1:
+                arrow_keys["KEY_RIGHT"]["state"] = True
+            else:
+                arrow_keys["KEY_RIGHT"]["state"] = False
+
+
 def main():
     matrix = [[0 for _ in range(p)] for _ in range(n)]
 
     current_tetrominos = random_piece()
-    x = randint(0, p - 4)
+    x = int(p / 2)
     y = 0
 
     continued = False
@@ -289,17 +405,40 @@ def main():
     print("| Tretris Game |")
     print("*--------------*")
 
+    if devices.gamepads:
+        joy = XboxController()
+    else:
+        joy = None
+
     while is_first_line_empty(matrix):
         if not can_descend(matrix, current_tetrominos, x, y):
             # if the tetrominos cannot go down then we check for any full line to score then we create a new tetrominos
             matrix = delete_full_lines(matrix)
             current_tetrominos = random_piece()
-            x = randint(0, p - 4)
+            x = int(p / 2)  # randint(0, p - 4)
             y = 0
             if continued:
                 break
             continued = True
             continue
+
+        if joy is not None:
+            jx, jy, a, b, rb = joy.read()
+
+            if jx < -0.5:
+                arrow_keys["KEY_LEFT"]["state"] = True
+            else:
+                arrow_keys["KEY_LEFT"]["state"] = False
+
+            if jx > 0.5:
+                arrow_keys["KEY_RIGHT"]["state"] = True
+            else:
+                arrow_keys["KEY_RIGHT"]["state"] = False
+
+            if jy < -0.5:
+                arrow_keys["KEY_DOWN"]["state"] = True
+            else:
+                arrow_keys["KEY_DOWN"]["state"] = False
 
         continued = False
         matrix = delete_piece(matrix, current_tetrominos, x, y)
@@ -324,4 +463,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    while True:
+        main()
+        sleep(3)
