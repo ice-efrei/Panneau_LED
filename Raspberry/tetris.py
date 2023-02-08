@@ -1,5 +1,3 @@
-# cadeaau kiki :D 
-import random
 import os
 from typing import List, Tuple
 
@@ -238,29 +236,36 @@ def main():
 
     current_tetrominos = random_piece()
     x = randint(0, p - 4)
-    y = 1
+    y = 0
+
+    continued = False
 
     print("*--------------*")
     print("| Tretris Game |")
     print("*--------------*")
 
     while is_first_line_empty(matrix):
-        if can_descend(matrix, current_tetrominos, x, y):
-            matrix = delete_piece(matrix, current_tetrominos, x, y)
-            if arrow_keys["KEY_LEFT"]["state"] and can_move_left(matrix, current_tetrominos, x, y):
-                x -= 1
-            elif arrow_keys["KEY_RIGHT"]["state"] and can_move_right(matrix, current_tetrominos, x, y):
-                x += 1
-            elif arrow_keys["KEY_DOWN"]["state"]:
-                y -= 1
-            elif arrow_keys["KEY_UP"]["state"]:
-                current_tetrominos = turn_piece(current_tetrominos)
-        else:
+        if not can_descend(matrix, current_tetrominos, x, y):
             # if the tetrominos cannot go down then we check for any full line to score then we create a new tetrominos
             matrix = delete_full_lines(matrix)
             current_tetrominos = random_piece()
             x = randint(0, p - 4)
-            y = 1
+            y = 0
+            if continued:
+                break
+            continued = True
+            continue
+
+        continued = False
+        matrix = delete_piece(matrix, current_tetrominos, x, y)
+        if arrow_keys["KEY_LEFT"]["state"] and can_move_left(matrix, current_tetrominos, x, y):
+            x -= 1
+        elif arrow_keys["KEY_RIGHT"]["state"] and can_move_right(matrix, current_tetrominos, x, y):
+            x += 1
+        elif arrow_keys["KEY_DOWN"]["state"]:
+            y -= 1
+        elif arrow_keys["KEY_UP"]["state"]:
+            current_tetrominos = turn_piece(current_tetrominos)
 
         y += 1
         matrix = place_piece(matrix, current_tetrominos, x, y)
@@ -268,6 +273,7 @@ def main():
         sleep(1 / frame_per_seconds)
         clear()
     display_on_console(matrix)
+    listener.stop()
     print("Game Over")
 
 
