@@ -13,7 +13,7 @@ is_first_line_empty = lambda matrix: all([x == 0 for x in matrix[0]])
 
 # give a size to the matrix who represent the game
 n = 20  # number of lines # * le vrai tableau fait 40 lignes
-p = 10  # number of columns# * le vrai tableau fait 30 colonnes
+p = 15  # number of columns# * le vrai tableau fait 30 colonnes
 
 # give a time between each turn
 frame_per_seconds = 10
@@ -252,7 +252,9 @@ def turn_piece(piece):
 #     """
 #     for y in range(len(array)):
 #         for x in range(len(array[y])):
-#             leds[XY(x, y, len(array[y]), len(array))] = colors[array[y][x]]
+#             for i in range(2):
+#                 for j in range(2):
+#                     leds[XY(x * 2 + i, y * 2 + j, p * 2, n * 2)] = colors[array[y][x]]
 #     leds.show()
 
 
