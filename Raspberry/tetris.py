@@ -2,10 +2,10 @@
 import random
 import os
 from typing import List, Tuple
-import keyboard
 
 from random import randint, choice
-from keyboard import is_pressed
+
+from pynput import keyboard
 from time import sleep
 
 clear = lambda: os.system('cls' if os.name == 'nt' else 'clear')
@@ -16,12 +16,6 @@ is_first_line_empty = lambda matrix: all([x == 0 for x in matrix[0]])
 # give a size to the matrix who represent the game
 n = 20  # number of lines # * le vrai tableau fait 40 lignes
 p = 10  # number of columns# * le vrai tableau fait 30 colonnes
-
-# give the touch who can use in game
-left = 'left'
-right = 'right'
-down = 'down'
-rotate = 'up'
 
 # give a time between each turn
 frame_per_seconds = 10
@@ -38,6 +32,64 @@ S = [[0, 7, 7], [7, 7, 0]]
 # black - cyan - yellow - purple - grey - blue - red - green - white
 colors = [(0, 0, 0), (0, 255, 255), (255, 255, 0), (128, 0, 128), (128, 128, 128), (0, 0, 255), (255, 0, 0),
           (0, 255, 0), (255, 255, 255)]
+
+
+# give the touch who can use in game
+left = 'KEY_LEFT'
+right = 'KEY_RIGHT'
+down = 'KEY_DOWN'
+rotate = 'KEY_UP'
+arrow_keys = {
+    "KEY_UP": {
+        "code": 126,
+        "state": False
+    },
+    "KEY_DOWN": {
+        "code": 125,
+        "state": False
+    },
+    "KEY_LEFT": {
+        "code": 123,
+        "state": False
+    },
+    "KEY_RIGHT": {
+        "code": 124,
+        "state": False
+    }
+}
+
+
+def on_press(key):
+    if key == keyboard.Key.up:
+        arrow_keys["KEY_UP"]["state"] = True
+    elif key == keyboard.Key.down:
+        arrow_keys["KEY_DOWN"]["state"] = True
+    elif key == keyboard.Key.left:
+        arrow_keys["KEY_LEFT"]["state"] = True
+    elif key == keyboard.Key.right:
+        arrow_keys["KEY_RIGHT"]["state"] = True
+    else:
+        pass
+
+
+def on_release(key):
+    if key == keyboard.Key.up:
+        arrow_keys["KEY_UP"]["state"] = False
+    elif key == keyboard.Key.down:
+        arrow_keys["KEY_DOWN"]["state"] = False
+    elif key == keyboard.Key.left:
+        arrow_keys["KEY_LEFT"]["state"] = False
+    elif key == keyboard.Key.right:
+        arrow_keys["KEY_RIGHT"]["state"] = False
+    else:
+        pass
+
+
+# Collect events until released
+listener = keyboard.Listener(
+        on_press=on_press,
+        on_release=on_release)
+listener.start()
 
 
 def display_on_console(array: List[List[int]]) -> None:
@@ -195,18 +247,14 @@ def main():
     while is_first_line_empty(matrix):
         if can_descend(matrix, current_tetrominos, x, y):
             matrix = delete_piece(matrix, current_tetrominos, x, y)
-            if is_pressed(left) and can_move_left(matrix, current_tetrominos, x, y):
-                print("left")
+            if arrow_keys["KEY_LEFT"]["state"] and can_move_left(matrix, current_tetrominos, x, y):
                 x -= 1
-            elif is_pressed(right) and can_move_right(matrix, current_tetrominos, x, y):
-                print("right")
+            elif arrow_keys["KEY_RIGHT"]["state"] and can_move_right(matrix, current_tetrominos, x, y):
                 x += 1
-            elif is_pressed(down):
+            elif arrow_keys["KEY_DOWN"]["state"]:
                 y -= 1
-            elif is_pressed(rotate):
+            elif arrow_keys["KEY_UP"]["state"]:
                 current_tetrominos = turn_piece(current_tetrominos)
-            print("right : ", can_move_right(matrix, current_tetrominos, x, y))
-            print("left : ", can_move_left(matrix, current_tetrominos, x, y))
         else:
             # if the tetrominos cannot go down then we check for any full line to score then we create a new tetrominos
             matrix = delete_full_lines(matrix)
