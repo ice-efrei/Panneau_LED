@@ -244,12 +244,12 @@ def turn_piece(piece):
 # ------------------------------
 
 # from board import D18
-# from neopixel import NeoPixel, GRB
+# from neopixel import NeoPixel, ORDER
 #
 #
 # pixel_pin = D18
 # num_pixels = 1200
-# led_strip = NeoPixel(pixel_pin, num_pixels, brightness=0.5, auto_write=False, pixel_order=GRB)
+# led_strip = NeoPixel(pixel_pin, num_pixels, brightness=0.5, auto_write=False, pixel_order=ORDER)
 #
 #
 # def display_on_leds (array: List[List[int]], leds: NeoPixel) -> None:
