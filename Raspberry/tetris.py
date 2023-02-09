@@ -243,34 +243,34 @@ def turn_piece(piece):
 # Only on raspberry pi
 # ------------------------------
 
-# from board import D18
-# from neopixel import NeoPixel, ORDER
-#
-#
-# pixel_pin = D18
-# num_pixels = 1200
-# led_strip = NeoPixel(pixel_pin, num_pixels, brightness=0.5, auto_write=False, pixel_order=ORDER)
-#
-#
-# def display_on_leds (array: List[List[int]], leds: NeoPixel) -> None:
-#     """
-#     Display the array on the LED strip
-#     :param array: array to display
-#     :return: None
-#     """
-#     for y in range(len(array)):
-#         for x in range(len(array[y])):
-#             for i in range(2):
-#                 for j in range(2):
-#                     leds[XY(x * 2 + i, y * 2 + j, p * 2, n * 2)] = colors[array[y][x]]
-#     leds.show()
+from board import D18
+from neopixel import NeoPixel, RGB
+
+
+pixel_pin = D18
+num_pixels = 1200
+led_strip = NeoPixel(pixel_pin, num_pixels, brightness=0.5, auto_write=False, pixel_order=RGB)
+
+
+def display_on_leds (array, leds):
+    """
+    Display the array on the LED strip
+    :param array: array to display
+    :return: None
+    """
+    for y in range(len(array)):
+        for x in range(len(array[y])):
+            for i in range(2):
+                for j in range(2):
+                    leds[XY(x * 2 + i, y * 2 + j, p * 2, n * 2)] = colors[array[y][x]]
+    leds.show()
 
 
 # ------------------------------
 # End of raspberry pi only code
 # ------------------------------
 
-def XY(x: int, y: int, w: int, h: int) -> int:
+def XY(x, y, w, h):
     """
     Convert x,y coordinates to a single integer
     :param x: x coordinate
@@ -461,7 +461,7 @@ def main():
         y += 1
         matrix = place_piece(matrix, current_tetrominos, x, y)
         display_on_console(matrix)
-        # display_on_leds(matrix, led_strip)
+        display_on_leds(matrix, led_strip)
         sleep(1 / frame_per_seconds)
         clear()
     display_on_console(matrix)
