@@ -20,6 +20,12 @@ source ./venv/bin/activate
 
 En faisant attention à ce que la mention `(venv)` apparaisse dans votre terminal vous pouvez maintenant installer les dépendances avec la commande précédente.
 
+Sur raspberry, ne pas oublier d'installer les librairies neopixel et rpi_ws281x :
+
+```bash
+sudo pip3 install rpi_ws281x adafruit-circuitpython-neopixel
+sudo python3 -m pip install --force-reinstall adafruit-blinka
+```
 ## Arduino
 
 Pour compiler le projet sur Arduino il faut télécharger les librairies suivantes depuis Arduino IDE ou directement sur github :
