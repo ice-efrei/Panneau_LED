@@ -1,11 +1,10 @@
 import os
 from threading import Thread
-from typing import List, Tuple
 
-from random import randint, choice
+from random import choice
 
 from inputs import get_gamepad, devices
-from pynput import keyboard
+from keyboard import hook, KEY_DOWN, KEY_UP
 from time import sleep
 
 clear = lambda: os.system('cls' if os.name == 'nt' else 'clear')
@@ -58,40 +57,48 @@ arrow_keys = {
 }
 
 
-def on_press(key):
-    if key == keyboard.Key.up:
+def on_key_press(key):
+    print("key pressed", key.name, "")
+    if key.name == "up":
         arrow_keys["KEY_UP"]["state"] = True
-    elif key == keyboard.Key.down:
+    elif key.name == "down":
         arrow_keys["KEY_DOWN"]["state"] = True
-    elif key == keyboard.Key.left:
+    elif key.name == "left":
         arrow_keys["KEY_LEFT"]["state"] = True
-    elif key == keyboard.Key.right:
+    elif key.name == "right":
         arrow_keys["KEY_RIGHT"]["state"] = True
     else:
         pass
 
 
-def on_release(key):
-    if key == keyboard.Key.up:
+def on_key_release(key):
+    print("key released", key.name, "")
+    if key.name == "up":
         arrow_keys["KEY_UP"]["state"] = False
-    elif key == keyboard.Key.down:
+    elif key.name == "down":
         arrow_keys["KEY_DOWN"]["state"] = False
-    elif key == keyboard.Key.left:
+    elif key.name == "left":
         arrow_keys["KEY_LEFT"]["state"] = False
-    elif key == keyboard.Key.right:
+    elif key.name == "right":
         arrow_keys["KEY_RIGHT"]["state"] = False
     else:
         pass
 
 
 # Collect events until released
-listener = keyboard.Listener(
-    on_press=on_press,
-    on_release=on_release)
-listener.start()
+def on_action(event):
+    if event.event_type == KEY_DOWN:
+        on_key_press(event)
+
+    elif event.event_type == KEY_UP:
+        on_key_release(event)
 
 
-def display_on_console(array: List[List[int]]) -> None:
+# Collect events until released
+hook(lambda e: on_action(e))
+
+
+def display_on_console(array):
     """
     Display the array on the bash terminal with colors and █ characters
     :param array: array to display
@@ -458,7 +465,6 @@ def main():
         sleep(1 / frame_per_seconds)
         clear()
     display_on_console(matrix)
-    listener.stop()
     print("Game Over")
 
 
